@@ -1,8 +1,18 @@
 const Movie = require('../models/moviesModel');
+const UserActivity = require('../models/userActivityModel');
+
 const uuid = require('uuid')
 
 const getAllMovies = async (req, res) => {
     try {
+        // Log user activity
+        const userActivity = new UserActivity({
+            userId: req.user.userId,
+            action: 'view',
+            resource: 'movie',
+        });
+
+        await userActivity.save();
         const movies = await Movie.find();
         res.status(200).json(movies);
     } catch (error) {
@@ -28,9 +38,9 @@ const createMovie = async (req, res) => {
     const imageUrl = req.file ? req.file.originalname : null
     try {
 
-    if (req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'You are not authorized to create movies' });
-      }
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'You are not authorized to create movies' });
+        }
 
         const movie = new Movie({
             mid: uuid.v4(),
@@ -42,7 +52,7 @@ const createMovie = async (req, res) => {
             duration,
             castCrew,
             coverImage: imageUrl,
-            createdBy: req.user.userId, 
+            createdBy: req.user.userId,
 
         });
         await movie.save();
@@ -57,10 +67,10 @@ const updateMovie = async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
     try {
-        
+
         if (req.user.role !== 'admin') {
             return res.status(403).json({ message: 'You are not authorized to update movies' });
-          }
+        }
 
         const updatedMovie = await Movie.findOneAndUpdate({ mid: id }, updateData, { new: true });
 
@@ -78,7 +88,7 @@ const deleteMovie = async (req, res) => {
     try {
         if (req.user.role !== 'admin') {
             return res.status(403).json({ message: 'You are not authorized to delete movies' });
-          }
+        }
         const movie = await Movie.deleteOne({ mid: id })
         if (!movie) {
             return res.status(404).json({ message: 'Movie not found' })
@@ -106,7 +116,7 @@ const searchMovies = async (req, res) => {
                 { genre: { $regex: searchQuery } },
                 { castCrew: { $regex: searchQuery } }
             ],
-            // createdBy: req.user._id
+            createdBy: req.user.userId
         });
 
         const totalPages = Math.ceil(totalMovies / limit)

@@ -1,11 +1,19 @@
-const { Long } = require('mongodb');
 const Series = require('../models/seriesModel');
+const UserActivity = require('../models/userActivityModel');
 const uuid = require('uuid');
 const Joi = require('joi');
 
 const getAllSeries = async (req, res) => {
     const { id } = req.params;
     try {
+         // Log user activity
+         const userActivity = new UserActivity({
+            userId: req.user.userId,
+            action: 'view',
+            resource: 'series',
+        });
+
+        await userActivity.save();
         const series = await Series.find();
         res.status(200).json(series);
     } catch (error) {
