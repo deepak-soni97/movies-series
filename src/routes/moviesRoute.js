@@ -3,7 +3,6 @@ const router = express.Router();
 const moviesController = require('../controllers/moviesController');
 const authenticateToken = require('../middleware/authMiddleware');
 const upload = require('../middleware/fileMiddleware');
-const {requireAdmin,requireUser} = require('../middleware/role')
 const {
     getAllMovies,
     getMovie,

@@ -14,7 +14,6 @@ const getMovie = async (req, res) => {
     const { id } = req.params;
     try {
         const movie = await Movie.findOne({ mid: id });
-        console.log(movie);
         if (!movie) {
             return res.status(404).json({ message: 'Movie not found' })
         }
@@ -28,6 +27,11 @@ const createMovie = async (req, res) => {
     const { title, genre, releaseYear, director, castCrew, description, duration } = req.body;
     const imageUrl = req.file ? req.file.originalname : null
     try {
+
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'You are not authorized to create movies' });
+      }
+
         const movie = new Movie({
             mid: uuid.v4(),
             title,
@@ -37,7 +41,8 @@ const createMovie = async (req, res) => {
             description,
             duration,
             castCrew,
-            coverImage: imageUrl
+            coverImage: imageUrl,
+            createdBy: req.user.userId, 
 
         });
         await movie.save();
@@ -52,6 +57,11 @@ const updateMovie = async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
     try {
+        
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'You are not authorized to update movies' });
+          }
+
         const updatedMovie = await Movie.findOneAndUpdate({ mid: id }, updateData, { new: true });
 
         if (!updatedMovie) {
@@ -66,6 +76,9 @@ const updateMovie = async (req, res) => {
 const deleteMovie = async (req, res) => {
     const { id } = req.params;
     try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'You are not authorized to delete movies' });
+          }
         const movie = await Movie.deleteOne({ mid: id })
         if (!movie) {
             return res.status(404).json({ message: 'Movie not found' })
@@ -127,9 +140,9 @@ const getTreandingMovies = async (req, res) => {
 
 const getUserMovies = async (req, res) => {
     const userId = req.user.userId;
-    console.log(userId);
+
     try {
-        const userMovies = await Movie.find({ addedBy: userId });
+        const userMovies = await Movie.find({ createdBy: userId });
         res.status(200).json({ movies: userMovies });
     } catch (error) {
         res.status(500).json({ error: error.message });

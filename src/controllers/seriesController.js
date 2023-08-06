@@ -29,6 +29,9 @@ const getSeriessById = async (req, res) => {
 const createSeries = async (req, res) => {
     const { title, genre, releaseYear, director, description, castCrew, duration } = req.body;
     try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'You are not authorized to create series' });
+          }
         // Validate the request data
     const schema = Joi.object({
         title: Joi.string().required(),
@@ -77,6 +80,9 @@ const updateSeries = async (req, res) => {
     const updateData = req.body
 
     try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'You are not authorized to update series' });
+          }
         const updateSeries = await Series.findOneAndUpdate({ sid: id }, updateData, { new: true });
         
         if (!updateSeries) {
@@ -91,6 +97,9 @@ const updateSeries = async (req, res) => {
 const deleteSeries = async (req, res) => {
     const id = req.params.id;
     try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'You are not authorized to delete series' });
+          }
         const series = await Series.deleteOne({ sid: id })
         if (!series) {
             return res.status(404).json({ message: 'Series not found' })
@@ -157,6 +166,9 @@ const createSeason = async (req, res) => {
     const { seasonNumber } = req.body;
 
     try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'You are not authorized to create season' });
+          }
 
         const schema = Joi.object({
             seasonNumber: Joi.number().integer().min(1).required(),
@@ -195,6 +207,9 @@ const updateSeason = async (req, res) => {
     const { id, seasonNumber } = req.params;
     const updateData = req.body;
     try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'You are not authorized to update season' });
+          }
         const series = await Series.findOne({ sid: id })
         if (!series) {
             return res.status(404).json({ message: 'Series not found' })
@@ -219,8 +234,10 @@ const deleteSeason = async (req, res) => {
     const { id, seasonNumber } = req.params;
 
     try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'You are not authorized to delete season' });
+          }
         const series = await Series.findOne({ sid: id });
-        console.log(series);
         if (!series) {
             return res.status(404).json({ message: 'Series not found' })
         }
@@ -257,6 +274,10 @@ const createEpisode = async (req, res) => {
     const { id, seasonNumber } = req.params;
     const { episodeNumber, title, duration, } = req.body;
     try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'You are not authorized to create episode' });
+          }
+
     const schema = Joi.object({
         episodeNumber: Joi.number().integer().min(1).required(),
         title: Joi.string().trim().required(),
@@ -301,7 +322,9 @@ const updateEpisode = async (req, res) => {
     console.log(req.params);
     const updateData = req.body;
     try {
-
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'You are not authorized to update episode' });
+          }
         const series = await Series.findOne({ sid: id });
         console.log(series.seasons[0].episodes);
         if (!series) {
@@ -331,6 +354,9 @@ const deleteEpisode = async (req, res) => {
     const { id, seasonNumber, episodeNumber } = req.params;
 
     try {
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ message: 'You are not authorized to delete episode' });
+          }
         const series = await Series.findOne({ sid: id });
         if (!series) {
             return res.status(404).json({ message: 'Series not found' })
@@ -368,7 +394,7 @@ const getUserSeries = async (req, res) => {
     const userId = req.user.userId; 
   
     try {
-      const userSeries = await Series.find({ addedBy: userId });
+      const userSeries = await Series.find({ createdBy: userId });
       res.status(200).json({ series: userSeries });
     } catch (error) {
       res.status(500).json({ error: error.message });

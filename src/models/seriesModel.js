@@ -26,7 +26,7 @@ const seriesSchema = new Schema({
     duration: { type: Number, },
     coverImage: { type: String, },
     popularity: { type: Number, default: 0 },
-    addedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     seasons: [seasonSchema]
 
 })
